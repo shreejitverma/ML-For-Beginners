@@ -24,7 +24,7 @@ def predict():
     countries = ["Australia", "Canada", "Germany", "UK", "US"]
 
     return render_template(
-        "index.html", prediction_text="Likely country: {}".format(countries[output])
+        "index.html", prediction_text=f"Likely country: {countries[output]}"
     )
 
 
