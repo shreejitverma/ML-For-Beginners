@@ -10,7 +10,10 @@ def extract_data(data_dir):
 
     GEFCom_zipfile = os.path.join(data_dir, 'GEFCom2014.zip')
     if not os.path.exists(GEFCom_zipfile):
-        sys.exit("Download GEFCom2014.zip from https://www.dropbox.com/s/pqenrr2mcvl0hk9/GEFCom2014.zip?dl=0 and save it to the '{}' directory.".format(data_dir))
+        sys.exit(
+            f"Download GEFCom2014.zip from https://www.dropbox.com/s/pqenrr2mcvl0hk9/GEFCom2014.zip?dl=0 and save it to the '{data_dir}' directory."
+        )
+
 
     # unzip root directory
     zip_ref = zipfile.ZipFile(GEFCom_zipfile, 'r')
