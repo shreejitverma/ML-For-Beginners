@@ -30,7 +30,10 @@ def mape(predictions, actuals):
 
 def create_evaluation_df(predictions, test_inputs, H, scaler):
     """Create a data frame for easy evaluation"""
-    eval_df = pd.DataFrame(predictions, columns=['t+'+str(t) for t in range(1, H+1)])
+    eval_df = pd.DataFrame(
+        predictions, columns=[f't+{str(t)}' for t in range(1, H + 1)]
+    )
+
     eval_df['timestamp'] = test_inputs.dataframe.index
     eval_df = pd.melt(eval_df, id_vars='timestamp', value_name='prediction', var_name='h')
     eval_df['actual'] = np.transpose(test_inputs['target']).ravel()
@@ -78,18 +81,17 @@ class TimeSeriesTensor(UserDict):
         #     time step - the time step for the RNN in which the data is input. These labels
         #         are centred on time t. the forecast creation time
         df = self.dataset.copy()
-        
+
         idx_tuples = []
         for t in range(1, H+1):
-            df['t+'+str(t)] = df[self.target].shift(t*-1, freq=freq)
-            idx_tuples.append(('target', 'y', 't+'+str(t)))
+            df[f't+{str(t)}'] = df[self.target].shift(t*-1, freq=freq)
+            idx_tuples.append(('target', 'y', f't+{str(t)}'))
 
         for name, structure in self.tensor_structure.items():
             rng = structure[0]
             dataset_cols = structure[1]
-            
+
             for col in dataset_cols:
-            
             # do not shift non-sequential 'static' features
                 if rng is None:
                     df['context_'+col] = df[col]
@@ -99,11 +101,11 @@ class TimeSeriesTensor(UserDict):
                     for t in rng:
                         sign = '+' if t > 0 else ''
                         shift = str(t) if t != 0 else ''
-                        period = 't'+sign+shift
+                        period = f't{sign}{shift}'
                         shifted_col = name+'_'+col+'_'+period
                         df[shifted_col] = df[col].shift(t*-1, freq=freq)
                         idx_tuples.append((name, col, period))
-                
+
         df = df.drop(self.dataset.columns, axis=1)
         idx = pd.MultiIndex.from_tuples(idx_tuples, names=['tensor', 'feature', 'time step'])
         df.columns = idx
@@ -115,16 +117,9 @@ class TimeSeriesTensor(UserDict):
     
     def _df2tensors(self, dataframe):
         
-        # Transform the shifted Pandas dataframe into the multidimensional numpy arrays. These
-        # arrays can be used to input into the keras model and can be accessed by tensor name.
-        # For example, for a TimeSeriesTensor object named "model_inputs" and a tensor named
-        # "target", the input tensor can be acccessed with model_inputs['target']
-    
-        inputs = {}
         y = dataframe['target']
         y = y.as_matrix()
-        inputs['target'] = y
-
+        inputs = {'target': y}
         for name, structure in self.tensor_structure.items():
             rng = structure[0]
             cols = structure[1]
